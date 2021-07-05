@@ -1,0 +1,7 @@
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted multiverse
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted multiverse
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted multiverse
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security universe

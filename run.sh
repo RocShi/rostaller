@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # @File          : run.sh
-# @Version       : v0.1
+# @Version       : v0.2
 # @Description   : This script is for installing ros-melodic automatically referring
 #                  to http://wiki.ros.org/cn/melodic/Installation/Ubuntu. Please
 #                  ensure you have configured the network as well as the proxy
@@ -54,19 +54,30 @@ gbGood="\033[1;32m[GOOD]\033[0m"
 time=$(date "+%Y-%m-%d %H:%M:%S")
 sudo echo -e "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< $time >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
 
-# Step 1: Configure your Ubuntu repositories
-# Configure your Ubuntu repositories to allow "restricted," "universe," and "multiverse."
-# You can follow https://help.ubuntu.com/community/Repositories/Ubuntu for instructions
-# on doing this. You should also select a more stable source url from your country at the
-# same time, such as https://mirrors.tuna.tsinghua.edu.cn/ubuntu/
-ConfRepo() {
-    echo -e "$gbWarning . Please ensure you have configured ubuntu repositories and select a more stable source url from your country.\n"
+# Step 1: configure your Ubuntu repositories to allow "restricted," "universe,"
+# and "multiverse" by using "https://mirrors.tuna.tsinghua.edu.cn/ubuntu/" as the
+# debian source
+ChangeDebSrc() {
+    SystemVersion=$(cat /etc/os-release | grep "VERSION_ID" | sed 's/VERSION_ID=//')
+    if [ "$SystemVersion" != \""18.04"\" ]; then
+        echo -e "$gbError Sorry, only Ubuntu 18.04 was supported. The current system information is as follows: \n"
+        cat /etc/os-release
+        echo
+        exit 1
+    fi
+    if [ ! -f "/etc/apt/sources.list.bkp.rostaller" ]; then
+        sudo cp /etc/apt/sources.list /etc/apt/sources.list.bkp.rostaller
+    fi
+    sudo cp SimpleSources/sources.list /etc/apt/
+    sudo apt-get update -y
+    sudo apt-get upgrade -y
+    echo -e "$gbGood The source has been updated and all softwares have been graded.\n"
 }
 
-# Step 2: set up sources.list
-SetSrc() {
+# Step 2: add ros source
+AddRosSrc() {
     sudo sh -c '. /etc/lsb-release && echo "deb http://mirrors.tuna.tsinghua.edu.cn/ros/ubuntu/ `lsb_release -cs` main" > /etc/apt/sources.list.d/ros-latest.list'
-    echo -e "$gbGood The sources.list has been set up. \n"
+    echo -e "$gbGood ROS source has been added. \n"
 }
 
 # Step 3: set up keys
@@ -80,7 +91,7 @@ SetKeys() {
 InstallRos() {
     sudo apt update
     sudo apt install ros-melodic-desktop-full
-    echo -e "$gbGood The ros-melodic-desktop-full has been set up. \n"
+    echo -e "$gbGood The ros-melodic-desktop-full has been installed. \n"
 }
 
 # Step 5: set up environment
@@ -106,11 +117,11 @@ RosdepInit() {
     else
         echo -e "$gbError Could not execute [rosdep init] online, I will do this using rosdistro repository. \n"
         sudo rm -rf rosdistro
-        echo -e "$gbInfo Trying to unzip local rosdistro repository ... \n"
+        echo -e "$gbInfo Trying to unzip local rosdistro repository... \n"
         set -e
         tar -zxvf rosdistro.tar.gz 2>&1 >/dev/null
         cd rosdistro
-        echo -e "$gbInfo Trying to update local rosdistro repository online ... \n"
+        echo -e "$gbInfo Trying to update local rosdistro repository online... \n"
         set +e
         git pull
 
@@ -121,7 +132,7 @@ RosdepInit() {
 
         cd ..
         sudo mkdir -p /etc/ros/rosdep/sources.list.d
-        sudo cp -f rosdistro/rosdep/sources.list.d/20-default.list /etc/ros/rosdep/sources.list.d/
+        sudo cp rosdistro/rosdep/sources.list.d/20-default.list /etc/ros/rosdep/sources.list.d/
         echo
         echo -e "$gbGood [rosdep init] was executed using rosdistro repository successfully. \n"
     fi
@@ -144,23 +155,23 @@ RosdepUpdate() {
         url_local="file://$(pwd)"
         cd ..
 
-        sudo cp -f /etc/ros/rosdep/sources.list.d/20-default.list /etc/ros/rosdep/sources.list.d/20-default.list.bkp
+        sudo cp -f /etc/ros/rosdep/sources.list.d/20-default.list /etc/ros/rosdep/sources.list.d/20-default.list.bkp.rostaller
         sudo sed -i "s|${url_original}|${url_local}|g" /etc/ros/rosdep/sources.list.d/20-default.list
 
-        sudo cp /usr/lib/python2.7/dist-packages/rosdep2/gbpdistro_support.py /usr/lib/python2.7/dist-packages/rosdep2/gbpdistro_support.py.bkp
+        sudo cp /usr/lib/python2.7/dist-packages/rosdep2/gbpdistro_support.py /usr/lib/python2.7/dist-packages/rosdep2/gbpdistro_support.py.bkp.rostaller
         sudo sed -i "s|${url_original}|${url_local}|g" /usr/lib/python2.7/dist-packages/rosdep2/gbpdistro_support.py
-        sudo cp /usr/lib/python2.7/dist-packages/rosdep2/rep3.py /usr/lib/python2.7/dist-packages/rosdep2/rep3.py.bkp
+        sudo cp /usr/lib/python2.7/dist-packages/rosdep2/rep3.py /usr/lib/python2.7/dist-packages/rosdep2/rep3.py.bkp.rostaller
         sudo sed -i "s|${url_original}|${url_local}|g" /usr/lib/python2.7/dist-packages/rosdep2/rep3.py
-        sudo cp /usr/lib/python2.7/dist-packages/rosdistro/__init__.py /usr/lib/python2.7/dist-packages/rosdistro/__init__.py.bkp
+        sudo cp /usr/lib/python2.7/dist-packages/rosdistro/__init__.py /usr/lib/python2.7/dist-packages/rosdistro/__init__.py.bkp.rostaller
         sudo sed -i "s|${url_original}|${url_local}|g" /usr/lib/python2.7/dist-packages/rosdistro/__init__.py
 
         rosdep update
 
         sudo rm -rf rosdistro
-        sudo mv /etc/ros/rosdep/sources.list.d/20-default.list.bkp /etc/ros/rosdep/sources.list.d/20-default.list
-        sudo mv /usr/lib/python2.7/dist-packages/rosdep2/gbpdistro_support.py.bkp /usr/lib/python2.7/dist-packages/rosdep2/gbpdistro_support.py
-        sudo mv /usr/lib/python2.7/dist-packages/rosdep2/rep3.py.bkp /usr/lib/python2.7/dist-packages/rosdep2/rep3.py
-        sudo mv /usr/lib/python2.7/dist-packages/rosdistro/__init__.py.bkp /usr/lib/python2.7/dist-packages/rosdistro/__init__.py
+        sudo mv /etc/ros/rosdep/sources.list.d/20-default.list.bkp.rostaller /etc/ros/rosdep/sources.list.d/20-default.list
+        sudo mv /usr/lib/python2.7/dist-packages/rosdep2/gbpdistro_support.py.bkp.rostaller /usr/lib/python2.7/dist-packages/rosdep2/gbpdistro_support.py
+        sudo mv /usr/lib/python2.7/dist-packages/rosdep2/rep3.py.bkp.rostaller /usr/lib/python2.7/dist-packages/rosdep2/rep3.py
+        sudo mv /usr/lib/python2.7/dist-packages/rosdistro/__init__.py.bkp.rostaller /usr/lib/python2.7/dist-packages/rosdistro/__init__.py
 
         echo -e "$gbGood [rosdep update] was executed using rosdistro repository successfully. \n"
     fi
@@ -168,19 +179,72 @@ RosdepUpdate() {
 
 # Step 9: run demo
 RunDemo() {
-    echo -e "$gbGood Good job, bro., all tasks have been done! Let's enjoy ros now! \n"
-    gnome-terminal --window -t roscore --execute roscore >/dev/null 2>&1 &&
-        sleep 2 &&
-        gnome-terminal --window -t turtlesim_node --execute rosrun turtlesim turtlesim_node >/dev/null 2>&1 &&
-        gnome-terminal --window -t turtle_teleop_key --execute rosrun turtlesim turtle_teleop_key >/dev/null 2>&1 &&
-        gnome-terminal --window -t rviz --execute rviz >/dev/null 2>&1 &&
-        gnome-terminal --window -t rqt_graph --execute rqt_graph >/dev/null 2>&1
+    sudo apt install xdotool -y
+
+    echo -e "$gbGood Good job, bro., all tasks have been done! Run demo now? [yes/no] \n"
+
+    while true; do
+        read input
+
+        case $input in
+
+        [yY][eE][sS] | [yY] | $null)
+            echo -e "\nLet's enjoy ros! \n"
+
+            gnome-terminal --window -t roscore >/dev/null 2>&1
+            WID=$(xdotool search --name "roscore" | head -1)
+            xdotool windowfocus $WID
+            xdotool type --clearmodifiers 'roscore'
+            xdotool key Return
+            sleep 2.5
+
+            gnome-terminal --window -t rviz >/dev/null 2>&1
+            WID=$(xdotool search --name "rviz" | head -1)
+            xdotool windowfocus $WID
+            xdotool type --clearmodifiers 'rviz'
+            xdotool key Return
+            sleep 2.5
+
+            gnome-terminal --window -t turtlesim_node >/dev/null 2>&1
+            WID=$(xdotool search --name "turtlesim_node" | head -1)
+            xdotool windowfocus $WID
+            xdotool type --clearmodifiers 'rosrun turtlesim turtlesim_node'
+            xdotool key Return
+            sleep 2.5
+
+            gnome-terminal --window -t turtle_teleop_key >/dev/null 2>&1
+            WID=$(xdotool search --name "turtle_teleop_key" | head -1)
+            xdotool windowfocus $WID
+            xdotool type --clearmodifiers 'rosrun turtlesim turtle_teleop_key'
+            xdotool key Return
+            sleep 2.5
+
+            gnome-terminal --window -t rqt_graph >/dev/null 2>&1
+            WID=$(xdotool search --name "rqt_graph" | head -1)
+            xdotool windowfocus $WID
+            xdotool type --clearmodifiers 'rqt_graph'
+            xdotool key Return
+            sleep 2.5
+
+            exit 1
+            ;;
+
+        [nN][oO] | [nN])
+            echo -e "\nBye! \n"
+            exit 1
+            ;;
+
+        *)
+            echo -e "\nInvalid input... \n"
+            ;;
+        esac
+    done
 }
 
 # main function
 main() {
-    ConfRepo
-    SetSrc
+    ChangeDebSrc
+    AddRosSrc
     SetKeys
     InstallRos
     SetEnv
