@@ -1,0 +1,4 @@
+- git:
+    local-name: freenect_stack
+    uri: https://github.com/ros-drivers/freenect_stack.git
+    version: master

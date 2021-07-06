@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # @File          : run.sh
-# @Version       : v0.2
+# @Version       : v0.3
 # @Description   : This script is for installing ros-melodic automatically referring
 #                  to http://wiki.ros.org/cn/melodic/Installation/Ubuntu. Please
 #                  ensure you have configured the network as well as the proxy
@@ -35,7 +35,7 @@ set -e
 
 logfile=log.log
 fifofile=run.fifo
-rm -f "$fifofile"
+sudo rm -f "$fifofile"
 mkfifo $fifofile
 cat $fifofile | tee -a $logfile &
 exec 3>&1
@@ -51,6 +51,8 @@ gbWarning="\033[1;33m[WARNING]\033[0m"
 gbInfo="\033[1;32m[INFO]\033[0m"
 gbGood="\033[1;32m[GOOD]\033[0m"
 
+rosdistro="rosdistro-master-9cc7b9d"
+
 time=$(date "+%Y-%m-%d %H:%M:%S")
 sudo echo -e "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< $time >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
 
@@ -63,6 +65,7 @@ ChangeDebSrc() {
         echo -e "$gbError Sorry, only Ubuntu 18.04 was supported. The current system information is as follows: \n"
         cat /etc/os-release
         echo
+        sudo rm -f "$fifofile"
         exit 1
     fi
     if [ ! -f "/etc/apt/sources.list.bkp.rostaller" ]; then
@@ -115,25 +118,35 @@ RosdepInit() {
     if [ $? -eq 0 ]; then
         echo -e "$gbGood [rosdep init] was executed online successfully. \n"
     else
-        echo -e "$gbError Could not execute [rosdep init] online, I will do this using rosdistro repository. \n"
-        sudo rm -rf rosdistro
-        echo -e "$gbInfo Trying to unzip local rosdistro repository... \n"
-        set -e
-        tar -zxvf rosdistro.tar.gz 2>&1 >/dev/null
-        cd rosdistro
-        echo -e "$gbInfo Trying to update local rosdistro repository online... \n"
-        set +e
-        git pull
+        echo -e "$gbWarning Could not execute [rosdep init] online, I will do this using rosdistro repository. \n"
 
-        if [ $? -ne 0 ]; then
-            current_commit=$(git rev-parse --short HEAD)
-            echo -e "$gbWarning Could not update local rosdistro repository, commit on [$current_commit] will be used. \n"
+        sudo rm -rf master.zip
+        sudo rm -rf rosdistro-master
+        sudo apt install wget unzip -y
+
+        echo -e "\n$gbInfo Trying to download the latest rosdistro repository from github... \n"
+        wget -T 10 https://github.com/ros/rosdistro/archive/refs/heads/master.zip
+
+        if [ $? -eq 0 ]; then
+            echo -e "$gbInfo Trying to unzip downloaded rosdistro repository... \n"
+            unzip master.zip 2>&1 >/dev/null
+
+            if [ $? -eq 0 ]; then
+                echo -e "$gbInfo Yaml files from the latest rosdistro repository will be used. \n"
+                rosdistro="rosdistro-master"
+            else
+                echo -e "$gbWarning Could not unzip downloaded rosdistro repository, so the local yaml files will be used. \n"
+                sudo rm -rf master.zip
+                sudo rm -rf rosdistro-master
+            fi
+        else
+            echo -e "$gbWarning Could not download the latest rosdistro repository, so the local yaml files will be used. \n"
+            sudo rm -rf master.zip
         fi
 
-        cd ..
         sudo mkdir -p /etc/ros/rosdep/sources.list.d
-        sudo cp rosdistro/rosdep/sources.list.d/20-default.list /etc/ros/rosdep/sources.list.d/
-        echo
+        cd $rosdistro
+        sudo cp rosdep/sources.list.d/20-default.list /etc/ros/rosdep/sources.list.d/
         echo -e "$gbGood [rosdep init] was executed using rosdistro repository successfully. \n"
     fi
     set -e
@@ -148,10 +161,9 @@ RosdepUpdate() {
         echo -e "$gbGood [rosdep update] was executed online successfully. \n"
     else
         set -e
-        echo -e "$gbError Could not execute [rosdep update] online, I will do this using rosdistro repository. \n"
+        echo -e "$gbWarning Could not execute [rosdep update] online, I will do this using rosdistro repository. \n"
 
         url_original="https://raw.githubusercontent.com/ros/rosdistro/master"
-        cd rosdistro
         url_local="file://$(pwd)"
         cd ..
 
@@ -167,7 +179,8 @@ RosdepUpdate() {
 
         rosdep update
 
-        sudo rm -rf rosdistro
+        sudo rm -rf master.zip
+        sudo rm -rf rosdistro-master
         sudo mv /etc/ros/rosdep/sources.list.d/20-default.list.bkp.rostaller /etc/ros/rosdep/sources.list.d/20-default.list
         sudo mv /usr/lib/python2.7/dist-packages/rosdep2/gbpdistro_support.py.bkp.rostaller /usr/lib/python2.7/dist-packages/rosdep2/gbpdistro_support.py
         sudo mv /usr/lib/python2.7/dist-packages/rosdep2/rep3.py.bkp.rostaller /usr/lib/python2.7/dist-packages/rosdep2/rep3.py
@@ -196,42 +209,42 @@ RunDemo() {
             xdotool windowfocus $WID
             xdotool type --clearmodifiers 'roscore'
             xdotool key Return
-            sleep 2.5
+            sleep 5
 
             gnome-terminal --window -t rviz >/dev/null 2>&1
             WID=$(xdotool search --name "rviz" | head -1)
             xdotool windowfocus $WID
             xdotool type --clearmodifiers 'rviz'
             xdotool key Return
-            sleep 2.5
+            sleep 5
 
             gnome-terminal --window -t turtlesim_node >/dev/null 2>&1
             WID=$(xdotool search --name "turtlesim_node" | head -1)
             xdotool windowfocus $WID
             xdotool type --clearmodifiers 'rosrun turtlesim turtlesim_node'
             xdotool key Return
-            sleep 2.5
+            sleep 5
 
             gnome-terminal --window -t turtle_teleop_key >/dev/null 2>&1
             WID=$(xdotool search --name "turtle_teleop_key" | head -1)
             xdotool windowfocus $WID
             xdotool type --clearmodifiers 'rosrun turtlesim turtle_teleop_key'
             xdotool key Return
-            sleep 2.5
+            sleep 5
 
             gnome-terminal --window -t rqt_graph >/dev/null 2>&1
             WID=$(xdotool search --name "rqt_graph" | head -1)
             xdotool windowfocus $WID
             xdotool type --clearmodifiers 'rqt_graph'
             xdotool key Return
-            sleep 2.5
+            sleep 5
 
-            exit 1
+            break
             ;;
 
         [nN][oO] | [nN])
             echo -e "\nBye! \n"
-            exit 1
+            break
             ;;
 
         *)
@@ -259,4 +272,4 @@ main
 printf "\015"
 exec 1>&3
 exec 2>&4
-rm -f "$fifofile"
+sudo rm -f "$fifofile"

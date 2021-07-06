@@ -1,0 +1,17 @@
+extends:
+  default
+
+rules:
+  document-start:
+    ignore: |
+      releases/*.yaml
+      rosdep/*.yaml
+  indentation:
+    spaces: consistent
+    indent-sequences: no
+  key-duplicates: enable
+  line-length:
+    max: 125
+    allow-non-breakable-words: yes
+    ignore: |
+      rosdep/*.yaml
