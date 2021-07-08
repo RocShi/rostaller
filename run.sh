@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # @File          : run.sh
-# @Version       : v0.3
+# @Version       : v0.4
 # @Description   : This script is for installing ros-melodic automatically referring
 #                  to http://wiki.ros.org/cn/melodic/Installation/Ubuntu. Please
 #                  ensure you have configured the network as well as the proxy
@@ -33,14 +33,14 @@
 
 set -e
 
-logfile=log.log
-fifofile=run.fifo
-sudo rm -f "$fifofile"
-mkfifo $fifofile
-cat $fifofile | tee -a $logfile &
+file_log=log
+file_fifo=run.fifo
+sudo rm -f "$file_fifo"
+mkfifo $file_fifo
+cat $file_fifo | tee -a $file_log &
 exec 3>&1
 exec 4>&2
-exec 1>$fifofile
+exec 1>$file_fifo
 exec 2>&1
 
 echo
@@ -51,21 +51,22 @@ gbWarning="\033[1;33m[WARNING]\033[0m"
 gbInfo="\033[1;32m[INFO]\033[0m"
 gbGood="\033[1;32m[GOOD]\033[0m"
 
-rosdistro="rosdistro-master-9cc7b9d"
+rosdistro="rosdistro-master-builtin"
 
-time=$(date "+%Y-%m-%d %H:%M:%S")
-sudo echo -e "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< $time >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+current_time=$(date "+%Y-%m-%d %H:%M:%S")
+sudo echo -e "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< $current_time >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
 
 # Step 1: configure your Ubuntu repositories to allow "restricted," "universe,"
 # and "multiverse" by using "https://mirrors.tuna.tsinghua.edu.cn/ubuntu/" as the
 # debian source
 ChangeDebSrc() {
+    echo
     SystemVersion=$(cat /etc/os-release | grep "VERSION_ID" | sed 's/VERSION_ID=//')
     if [ "$SystemVersion" != \""18.04"\" ]; then
         echo -e "$gbError Sorry, only Ubuntu 18.04 was supported. The current system information is as follows: \n"
         cat /etc/os-release
         echo
-        sudo rm -f "$fifofile"
+        sudo rm -f "$file_fifo"
         exit 1
     fi
     if [ ! -f "/etc/apt/sources.list.bkp.rostaller" ]; then
@@ -85,28 +86,41 @@ AddRosSrc() {
 
 # Step 3: set up keys
 SetKeys() {
-    sudo apt install curl
+    sudo apt install curl -y
     curl -sSL 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xC1CF6E31E6BADE8868B172B4F42ED6FBAB17C654' | sudo apt-key add -
     echo -e "$gbGood Keys have been set up. \n"
 }
 
 # Step 4: install ros
 InstallRos() {
-    sudo apt update
-    sudo apt install ros-melodic-desktop-full
+    sudo apt update -y
+    sudo apt install ros-melodic-desktop-full -y
     echo -e "$gbGood The ros-melodic-desktop-full has been installed. \n"
 }
 
 # Step 5: set up environment
 SetEnv() {
-    echo "source /opt/ros/melodic/setup.bash" >>~/.bashrc
-    source ~/.bashrc
+    found="false"
+
+    while read line; do
+        if [ "$line" == "source /opt/ros/melodic/setup.bash" ]; then
+            found="true"
+            break
+        fi
+    done <~/.bashrc
+
+    if [ $found == "false" ]; then
+        echo -e "\n# added by rostaller to set ros environment - $current_time" >>~/.bashrc
+        echo -e "source /opt/ros/melodic/setup.bash\n" >>~/.bashrc
+        source ~/.bashrc
+    fi
+
     echo -e "$gbGood Environment has been set up. \n"
 }
 
 # Step 6: install dependencies for building packages
 InstallDepend() {
-    sudo apt install python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential
+    sudo apt install python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential -y
     echo -e "$gbGood Some dependencies for building packages have been installed. \n"
 }
 
@@ -194,7 +208,7 @@ RosdepUpdate() {
 RunDemo() {
     sudo apt install xdotool -y
 
-    echo -e "$gbGood Good job, bro., all tasks have been done! Run demo now? [yes/no] \n"
+    echo -e "$gbGood Good job, bro., all tasks have been done! Run demo now? (yes/no) [yes] \n"
 
     while true; do
         read input
@@ -206,35 +220,60 @@ RunDemo() {
 
             gnome-terminal --window -t roscore >/dev/null 2>&1
             WID=$(xdotool search --name "roscore" | head -1)
-            xdotool windowfocus $WID
+            xdotool windowfocus $WID >/dev/null 2>&1
+            if [ $? -ne 0 ]; then
+                echo -e "$gbWarning Unfortunately, there are some errors when running demo automatically. But it doesn't matter, you can do this manually. \n"
+                echo -e "Bye! \n"
+                return
+            fi
             xdotool type --clearmodifiers 'roscore'
             xdotool key Return
             sleep 5
 
             gnome-terminal --window -t rviz >/dev/null 2>&1
             WID=$(xdotool search --name "rviz" | head -1)
-            xdotool windowfocus $WID
+            xdotool windowfocus $WID >/dev/null 2>&1
+            if [ $? -ne 0 ]; then
+                echo -e "$gbWarning Unfortunately, there are some errors when running demo automatically. But it doesn't matter, you can do this manually. \n"
+                echo -e "Bye! \n"
+                return
+            fi
             xdotool type --clearmodifiers 'rviz'
             xdotool key Return
             sleep 5
 
             gnome-terminal --window -t turtlesim_node >/dev/null 2>&1
             WID=$(xdotool search --name "turtlesim_node" | head -1)
-            xdotool windowfocus $WID
+            xdotool windowfocus $WID >/dev/null 2>&1
+            if [ $? -ne 0 ]; then
+                echo -e "$gbWarning Unfortunately, there are some errors when running demo automatically. But it doesn't matter, you can do this manually. \n"
+                echo -e "Bye! \n"
+                return
+            fi
             xdotool type --clearmodifiers 'rosrun turtlesim turtlesim_node'
             xdotool key Return
             sleep 5
 
             gnome-terminal --window -t turtle_teleop_key >/dev/null 2>&1
             WID=$(xdotool search --name "turtle_teleop_key" | head -1)
-            xdotool windowfocus $WID
+            xdotool windowfocus $WID >/dev/null 2>&1
+            if [ $? -ne 0 ]; then
+                echo -e "$gbWarning Unfortunately, there are some errors when running demo automatically. But it doesn't matter, you can do this manually. \n"
+                echo -e "Bye! \n"
+                return
+            fi
             xdotool type --clearmodifiers 'rosrun turtlesim turtle_teleop_key'
             xdotool key Return
             sleep 5
 
             gnome-terminal --window -t rqt_graph >/dev/null 2>&1
             WID=$(xdotool search --name "rqt_graph" | head -1)
-            xdotool windowfocus $WID
+            xdotool windowfocus $WID >/dev/null 2>&1
+            if [ $? -ne 0 ]; then
+                echo -e "$gbWarning Unfortunately, there are some errors when running demo automatically. But it doesn't matter, you can do this manually. \n"
+                echo -e "Bye! \n"
+                return
+            fi
             xdotool type --clearmodifiers 'rqt_graph'
             xdotool key Return
             sleep 5
@@ -250,12 +289,38 @@ RunDemo() {
         *)
             echo -e "\nInvalid input... \n"
             ;;
+
         esac
     done
 }
 
 # main function
 main() {
+    if [ -d "/opt/ros" ]; then
+        while true; do
+            echo -e "\n$gbWarning You have installed ros $(ls /opt/ros) in your machine. Are you sure to continue? (yes/no) [no] \n"
+
+            read input
+
+            case $input in
+
+            [yY][eE][sS] | [yY])
+                break
+                ;;
+
+            [nN][oO] | [nN] | $null)
+                echo -e "Bye! \n"
+                return
+                ;;
+
+            *)
+                echo -e "\nInvalid input... \n"
+                ;;
+
+            esac
+        done
+    fi
+
     ChangeDebSrc
     AddRosSrc
     SetKeys
@@ -272,4 +337,4 @@ main
 printf "\015"
 exec 1>&3
 exec 2>&4
-sudo rm -f "$fifofile"
+sudo rm -f "$file_fifo"
