@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # @File          : run.sh
-# @Version       : v0.4
+# @Version       : v0.4.1
 # @Description   : This script is for installing ros-melodic automatically referring
 #                  to http://wiki.ros.org/cn/melodic/Installation/Ubuntu. Please
 #                  ensure you have configured the network as well as the proxy
