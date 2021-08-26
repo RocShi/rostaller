@@ -1,3 +1,11 @@
+## 20210825 - v0.5
+
+- **[new]：** 添加对 Ubuntu 16.04（Xenial）下 ROS 1 Kinetic 的支持；
+- **[new]：** 添加对 Ubuntu 20.04（Focal）下 ROS 1 Noetic 的支持；
+- **[update]：** 更新本地预置的 `rosdistro` 版本：`6a23f46` → `cb9a972`；
+- **[update]：** 优化 demo 运行逻辑；
+- **[update]：** 更新 README 文档。
+
 ## 20210708 - v0.4.1
 
 - **[fix]：** 修复 `.gitignore` 忽略文件错误的问题。

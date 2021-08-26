@@ -1,11 +1,11 @@
 #!/bin/bash
 #
 # @File          : run.sh
-# @Version       : v0.4.1
-# @Description   : This script is for installing ros-melodic automatically referring
-#                  to http://wiki.ros.org/cn/melodic/Installation/Ubuntu. Please
-#                  ensure you have configured the network as well as the proxy
-#                  correctly before executing this script.
+# @Version       : v0.5
+# @Description   : This script is for installing ROS 1 including kinetic, melodic
+#                  and noetic on corresponding ubuntu distributions automatically.
+#                  Please ensure you have configured the network as well as the
+#                  proxy correctly before executing this script.
 # @Author        : ShiPeng
 # @Email         : RocShi@outlook.com
 # @License       : MIT License
@@ -53,29 +53,54 @@ gbGood="\033[1;32m[GOOD]\033[0m"
 
 rosdistro="rosdistro-master-builtin"
 
+ros_version=""
+
+python_apt_version="python"
+python_lib_version="python2.7"
+
 current_time=$(date "+%Y-%m-%d %H:%M:%S")
-sudo echo -e "\n<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< $current_time >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>\n"
+sudo echo -e "\n <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< $current_time >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \n"
 
 # Step 1: configure your Ubuntu repositories to allow "restricted," "universe,"
 # and "multiverse" by using "https://mirrors.tuna.tsinghua.edu.cn/ubuntu/" as the
 # debian source
 ChangeDebSrc() {
     echo
-    SystemVersion=$(cat /etc/os-release | grep "VERSION_ID" | sed 's/VERSION_ID=//')
-    if [ "$SystemVersion" != \""18.04"\" ]; then
-        echo -e "$gbError Sorry, only Ubuntu 18.04 was supported. The current system information is as follows: \n"
-        cat /etc/os-release
+    echo -e "$gbInfo Your current system information is as follows:"
+    cat /etc/os-release
+    echo
+
+    ubuntu_version=$(cat /etc/os-release | grep "VERSION_ID" | sed 's/\(VERSION_ID=\|"\|\.\)//g')
+
+    case $ubuntu_version in
+    1604)
+        ros_version="kinetic"
+        ;;
+    1804)
+        ros_version="melodic"
+        ;;
+    2004)
+        ros_version="noetic"
+        python_apt_version="python3"
+        python_lib_version="python3"
+        ;;
+    *)
+        echo -e "$gbError Sorry, only ubuntu 16.04, 18.04 and 20.04 are supported. \n"
         echo
         sudo rm -f "$file_fifo"
         exit 1
-    fi
+        ;;
+    esac
+
+    echo -e "\n$gbInfo The ros-$ros_version will be installed next. \n"
+
     if [ ! -f "/etc/apt/sources.list.bkp.rostaller" ]; then
         sudo cp /etc/apt/sources.list /etc/apt/sources.list.bkp.rostaller
     fi
-    sudo cp SimpleSources/sources.list /etc/apt/
+    sudo cp SimpleSources/$ubuntu_version/sources.list /etc/apt/
     sudo apt-get update -y
     sudo apt-get upgrade -y
-    echo -e "$gbGood The source has been updated and all softwares have been graded.\n"
+    echo -e "$gbGood The source has been updated and all softwares have been graded. \n"
 }
 
 # Step 2: add ros source
@@ -94,8 +119,8 @@ SetKeys() {
 # Step 4: install ros
 InstallRos() {
     sudo apt update -y
-    sudo apt install ros-melodic-desktop-full -y
-    echo -e "$gbGood The ros-melodic-desktop-full has been installed. \n"
+    sudo apt install ros-$ros_version-desktop-full -y
+    echo -e "$gbGood The ros-$ros_version-desktop-full has been installed. \n"
 }
 
 # Step 5: set up environment
@@ -103,7 +128,7 @@ SetEnv() {
     found="false"
 
     while read line; do
-        if [ "$line" == "source /opt/ros/melodic/setup.bash" ]; then
+        if [ "$line" == "source /opt/ros/$ros_version/setup.bash" ]; then
             found="true"
             break
         fi
@@ -111,7 +136,7 @@ SetEnv() {
 
     if [ $found == "false" ]; then
         echo -e "\n# added by rostaller to set ros environment - $current_time" >>~/.bashrc
-        echo -e "source /opt/ros/melodic/setup.bash\n" >>~/.bashrc
+        echo -e "source /opt/ros/$ros_version/setup.bash\n" >>~/.bashrc
         source ~/.bashrc
     fi
 
@@ -120,7 +145,7 @@ SetEnv() {
 
 # Step 6: install dependencies for building packages
 InstallDepend() {
-    sudo apt install python-rosdep python-rosinstall python-rosinstall-generator python-wstool build-essential -y
+    sudo apt install $python_apt_version-rosdep $python_apt_version-rosinstall $python_apt_version-rosinstall-generator $python_apt_version-wstool build-essential -y
     echo -e "$gbGood Some dependencies for building packages have been installed. \n"
 }
 
@@ -184,21 +209,21 @@ RosdepUpdate() {
         sudo cp -f /etc/ros/rosdep/sources.list.d/20-default.list /etc/ros/rosdep/sources.list.d/20-default.list.bkp.rostaller
         sudo sed -i "s|${url_original}|${url_local}|g" /etc/ros/rosdep/sources.list.d/20-default.list
 
-        sudo cp /usr/lib/python2.7/dist-packages/rosdep2/gbpdistro_support.py /usr/lib/python2.7/dist-packages/rosdep2/gbpdistro_support.py.bkp.rostaller
-        sudo sed -i "s|${url_original}|${url_local}|g" /usr/lib/python2.7/dist-packages/rosdep2/gbpdistro_support.py
-        sudo cp /usr/lib/python2.7/dist-packages/rosdep2/rep3.py /usr/lib/python2.7/dist-packages/rosdep2/rep3.py.bkp.rostaller
-        sudo sed -i "s|${url_original}|${url_local}|g" /usr/lib/python2.7/dist-packages/rosdep2/rep3.py
-        sudo cp /usr/lib/python2.7/dist-packages/rosdistro/__init__.py /usr/lib/python2.7/dist-packages/rosdistro/__init__.py.bkp.rostaller
-        sudo sed -i "s|${url_original}|${url_local}|g" /usr/lib/python2.7/dist-packages/rosdistro/__init__.py
+        sudo cp /usr/lib/$python_lib_version/dist-packages/rosdep2/gbpdistro_support.py /usr/lib/$python_lib_version/dist-packages/rosdep2/gbpdistro_support.py.bkp.rostaller
+        sudo sed -i "s|${url_original}|${url_local}|g" /usr/lib/$python_lib_version/dist-packages/rosdep2/gbpdistro_support.py
+        sudo cp /usr/lib/$python_lib_version/dist-packages/rosdep2/rep3.py /usr/lib/$python_lib_version/dist-packages/rosdep2/rep3.py.bkp.rostaller
+        sudo sed -i "s|${url_original}|${url_local}|g" /usr/lib/$python_lib_version/dist-packages/rosdep2/rep3.py
+        sudo cp /usr/lib/$python_lib_version/dist-packages/rosdistro/__init__.py /usr/lib/$python_lib_version/dist-packages/rosdistro/__init__.py.bkp.rostaller
+        sudo sed -i "s|${url_original}|${url_local}|g" /usr/lib/$python_lib_version/dist-packages/rosdistro/__init__.py
 
         rosdep update
 
         sudo rm -rf master.zip
         sudo rm -rf rosdistro-master
         sudo mv /etc/ros/rosdep/sources.list.d/20-default.list.bkp.rostaller /etc/ros/rosdep/sources.list.d/20-default.list
-        sudo mv /usr/lib/python2.7/dist-packages/rosdep2/gbpdistro_support.py.bkp.rostaller /usr/lib/python2.7/dist-packages/rosdep2/gbpdistro_support.py
-        sudo mv /usr/lib/python2.7/dist-packages/rosdep2/rep3.py.bkp.rostaller /usr/lib/python2.7/dist-packages/rosdep2/rep3.py
-        sudo mv /usr/lib/python2.7/dist-packages/rosdistro/__init__.py.bkp.rostaller /usr/lib/python2.7/dist-packages/rosdistro/__init__.py
+        sudo mv /usr/lib/$python_lib_version/dist-packages/rosdep2/gbpdistro_support.py.bkp.rostaller /usr/lib/$python_lib_version/dist-packages/rosdep2/gbpdistro_support.py
+        sudo mv /usr/lib/$python_lib_version/dist-packages/rosdep2/rep3.py.bkp.rostaller /usr/lib/$python_lib_version/dist-packages/rosdep2/rep3.py
+        sudo mv /usr/lib/$python_lib_version/dist-packages/rosdistro/__init__.py.bkp.rostaller /usr/lib/$python_lib_version/dist-packages/rosdistro/__init__.py
 
         echo -e "$gbGood [rosdep update] was executed using rosdistro repository successfully. \n"
     fi
@@ -206,8 +231,6 @@ RosdepUpdate() {
 
 # Step 9: run demo
 RunDemo() {
-    sudo apt install xdotool -y
-
     echo -e "$gbGood Good job, bro., all tasks have been done! Run demo now? (yes/no) [yes] \n"
 
     while true; do
@@ -218,65 +241,15 @@ RunDemo() {
         [yY][eE][sS] | [yY] | $null)
             echo -e "\nLet's enjoy ros! \n"
 
-            gnome-terminal --window -t roscore >/dev/null 2>&1
-            WID=$(xdotool search --name "roscore" | head -1)
-            xdotool windowfocus $WID >/dev/null 2>&1
-            if [ $? -ne 0 ]; then
-                echo -e "$gbWarning Unfortunately, there are some errors when running demo automatically. But it doesn't matter, you can do this manually. \n"
-                echo -e "Bye! \n"
-                return
-            fi
-            xdotool type --clearmodifiers 'roscore'
-            xdotool key Return
-            sleep 5
-
-            gnome-terminal --window -t rviz >/dev/null 2>&1
-            WID=$(xdotool search --name "rviz" | head -1)
-            xdotool windowfocus $WID >/dev/null 2>&1
-            if [ $? -ne 0 ]; then
-                echo -e "$gbWarning Unfortunately, there are some errors when running demo automatically. But it doesn't matter, you can do this manually. \n"
-                echo -e "Bye! \n"
-                return
-            fi
-            xdotool type --clearmodifiers 'rviz'
-            xdotool key Return
-            sleep 5
-
-            gnome-terminal --window -t turtlesim_node >/dev/null 2>&1
-            WID=$(xdotool search --name "turtlesim_node" | head -1)
-            xdotool windowfocus $WID >/dev/null 2>&1
-            if [ $? -ne 0 ]; then
-                echo -e "$gbWarning Unfortunately, there are some errors when running demo automatically. But it doesn't matter, you can do this manually. \n"
-                echo -e "Bye! \n"
-                return
-            fi
-            xdotool type --clearmodifiers 'rosrun turtlesim turtlesim_node'
-            xdotool key Return
-            sleep 5
-
-            gnome-terminal --window -t turtle_teleop_key >/dev/null 2>&1
-            WID=$(xdotool search --name "turtle_teleop_key" | head -1)
-            xdotool windowfocus $WID >/dev/null 2>&1
-            if [ $? -ne 0 ]; then
-                echo -e "$gbWarning Unfortunately, there are some errors when running demo automatically. But it doesn't matter, you can do this manually. \n"
-                echo -e "Bye! \n"
-                return
-            fi
-            xdotool type --clearmodifiers 'rosrun turtlesim turtle_teleop_key'
-            xdotool key Return
-            sleep 5
-
-            gnome-terminal --window -t rqt_graph >/dev/null 2>&1
-            WID=$(xdotool search --name "rqt_graph" | head -1)
-            xdotool windowfocus $WID >/dev/null 2>&1
-            if [ $? -ne 0 ]; then
-                echo -e "$gbWarning Unfortunately, there are some errors when running demo automatically. But it doesn't matter, you can do this manually. \n"
-                echo -e "Bye! \n"
-                return
-            fi
-            xdotool type --clearmodifiers 'rqt_graph'
-            xdotool key Return
-            sleep 5
+            gnome-terminal -- roscore >/dev/null 2>&1 &&
+                sleep 5 &&
+                gnome-terminal -- rviz >/dev/null 2>&1 &&
+                sleep 2 &&
+                gnome-terminal -- rosrun turtlesim turtlesim_node >/dev/null 2>&1 &&
+                sleep 2 &&
+                gnome-terminal -- rosrun turtlesim turtle_teleop_key >/dev/null 2>&1 &&
+                sleep 2 &&
+                gnome-terminal -- rqt_graph >/dev/null 2>&1
 
             break
             ;;
