@@ -1,3 +1,7 @@
+## 20211003 - v0.5.1
+
+- **[update]：** 更新 README 文档。
+
 ## 20210825 - v0.5
 
 - **[new]：** 添加对 Ubuntu 16.04（Xenial）下 ROS 1 Kinetic 的支持；

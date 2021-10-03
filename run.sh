@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # @File          : run.sh
-# @Version       : v0.5
+# @Version       : v0.5.1
 # @Description   : This script is for installing ROS 1 including kinetic, melodic
 #                  and noetic on corresponding ubuntu distributions automatically.
 #                  Please ensure you have configured the network as well as the
