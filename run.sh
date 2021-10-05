@@ -1,9 +1,10 @@
 #!/bin/bash
 #
 # @File          : run.sh
-# @Version       : v0.5.1
-# @Description   : This script is for installing ROS 1 including kinetic, melodic
-#                  and noetic on corresponding ubuntu distributions automatically.
+# @Version       : v0.6
+# @Description   : This script is for installing ROS 1 including indigo, kinetic,
+#                  melodic and noetic on corresponding ubuntu distributions
+#                  automatically.
 #                  Please ensure you have configured the network as well as the
 #                  proxy correctly before executing this script.
 # @Author        : ShiPeng
@@ -73,6 +74,9 @@ ChangeDebSrc() {
     ubuntu_version=$(cat /etc/os-release | grep "VERSION_ID" | sed 's/\(VERSION_ID=\|"\|\.\)//g')
 
     case $ubuntu_version in
+    1404)
+        ros_version="indigo"
+        ;;
     1604)
         ros_version="kinetic"
         ;;
@@ -241,15 +245,15 @@ RunDemo() {
         [yY][eE][sS] | [yY] | $null)
             echo -e "\nLet's enjoy ros! \n"
 
-            gnome-terminal -- roscore >/dev/null 2>&1 &&
+            gnome-terminal -- bash -c "roscore" >/dev/null 2>&1 &&
                 sleep 5 &&
-                gnome-terminal -- rviz >/dev/null 2>&1 &&
+                gnome-terminal -- bash -c "rviz" >/dev/null 2>&1 &&
                 sleep 2 &&
-                gnome-terminal -- rosrun turtlesim turtlesim_node >/dev/null 2>&1 &&
+                gnome-terminal -- bash -c "rosrun turtlesim turtlesim_node" >/dev/null 2>&1 &&
                 sleep 2 &&
-                gnome-terminal -- rosrun turtlesim turtle_teleop_key >/dev/null 2>&1 &&
+                gnome-terminal -- bash -c "rosrun turtlesim turtle_teleop_key" >/dev/null 2>&1 &&
                 sleep 2 &&
-                gnome-terminal -- rqt_graph >/dev/null 2>&1
+                gnome-terminal -- bash -c "rqt_graph" >/dev/null 2>&1
 
             break
             ;;

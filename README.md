@@ -4,6 +4,7 @@
 
 - 支持版本：
 
+  - Ubuntu 14.04（Trusty） + ROS 1 Indigo
   - Ubuntu 16.04（Xenial） + ROS 1 Kinetic
   - Ubuntu 18.04（Bionic） + ROS 1 Melodic
   - Ubuntu 20.04（Focal） + ROS 1 Noetic

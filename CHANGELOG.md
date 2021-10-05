@@ -1,3 +1,9 @@
+## 20211005 - v0.6
+
+- **[new]：** 添加对 Ubuntu 14.04（Trusty）下 ROS 1 Indigo 的支持；
+- **[update]：** 更新本地预置的 `rosdistro` 版本：`cb9a972` → `adf8deb`；
+- **[update]：** 更新 README 文档。
+
 ## 20211003 - v0.5.1
 
 - **[update]：** 更新 README 文档。

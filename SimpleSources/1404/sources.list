@@ -1,0 +1,7 @@
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ trusty main restricted multiverse
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ trusty-updates main restricted multiverse
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ trusty universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ trusty-updates universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ trusty-backports main restricted universe multiverse
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ trusty-security main restricted multiverse
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ trusty-security universe
