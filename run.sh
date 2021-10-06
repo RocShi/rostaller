@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # @File          : run.sh
-# @Version       : v0.6
+# @Version       : v0.6.1
 # @Description   : This script is for installing ROS 1 including indigo, kinetic,
 #                  melodic and noetic on corresponding ubuntu distributions
 #                  automatically.
@@ -89,7 +89,7 @@ ChangeDebSrc() {
         python_lib_version="python3"
         ;;
     *)
-        echo -e "$gbError Sorry, only ubuntu 16.04, 18.04 and 20.04 are supported. \n"
+        echo -e "$gbError Sorry, only ubuntu 14.04, 16.04, 18.04 and 20.04 are supported. \n"
         echo
         sudo rm -f "$file_fifo"
         exit 1
