@@ -1,3 +1,7 @@
+## 20220403 - v0.7
+
+- **[new]：** 添加对 Ubuntu 20.04（Focal）下 ROS 2 Galactic 的支持。
+
 ## 20220402 - v0.6.2
 
 - **[update]：** 更新本地预置的 `rosdistro` 版本：`adf8deb` → `b226ab5`；

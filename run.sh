@@ -1,17 +1,17 @@
 #!/bin/bash
 #
 # @File          : run.sh
-# @Version       : v0.6.2
-# @Description   : This script is for installing ROS 1 including indigo, kinetic,
-#                  melodic and noetic on corresponding ubuntu distributions
-#                  automatically.
+# @Version       : v0.7
+# @Description   : This script is for installing ROS 1 (indigo, kinetic,
+#                  melodic and noetic) and ROS 2 galactic on corresponding
+#                  ubuntu distributions automatically.
 #                  Please ensure you have configured the network as well as the
 #                  proxy correctly before executing this script.
 # @Author        : ShiPeng
 # @Email         : RocShi@outlook.com
 # @License       : MIT License
 #
-#    Copyright (c) 2021 ShiPeng
+#    Copyright (c) 2021-2022 ShiPeng
 #
 #    Permission is hereby granted, free of charge, to any person obtaining a copy
 #    of this software and associated documentation files (the "Software"), to deal
@@ -62,8 +62,31 @@ python_lib_version="python2.7"
 current_time=$(date "+%Y-%m-%d %H:%M:%S")
 sudo echo -e "\n <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< $current_time >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \n"
 
-# Step 1: configure your Ubuntu repositories to allow "restricted," "universe,"
-# and "multiverse" by using "https://mirrors.tuna.tsinghua.edu.cn/ubuntu/" as the
+# check if ros has been installed
+CheckInstalledRos() {
+    if [ -d "/opt/ros" ]; then
+        while true; do
+            installed_ros_list=$(echo $(ls /opt/ros) | sed 's/ /, /g' | sed 's/\(.*\), \(.*\)/\1 and \2/')
+            echo -e "\n$gbWarning You have installed ros $installed_ros_list in your machine. Are you sure to continue? (yes/no) [no] \n"
+            read input
+            case $input in
+            [yY][eE][sS] | [yY])
+                return
+                ;;
+            [nN][oO] | [nN] | $null)
+                echo -e "Bye! \n"
+                exit 1
+                ;;
+            *)
+                echo -e "\nInvalid input... \n"
+                ;;
+            esac
+        done
+    fi
+}
+
+# configure your Ubuntu repositories to allow "restricted," "universe," and
+# "multiverse" by using "https://mirrors.tuna.tsinghua.edu.cn/ubuntu/" as the
 # debian source
 ChangeDebSrc() {
     echo
@@ -84,9 +107,25 @@ ChangeDebSrc() {
         ros_version="melodic"
         ;;
     2004)
-        ros_version="noetic"
-        python_apt_version="python3"
-        python_lib_version="python3"
+        while true; do
+            echo -e "\n$gbInfo Both ros 1 and ros 2 are supported by rostaller on ubuntu 20.04, which one do you want? (1/2) \n"
+            read input
+            case $input in
+            1)
+                ros_version="noetic"
+                python_apt_version="python3"
+                python_lib_version="python3"
+                break
+                ;;
+            2)
+                ros_version="galactic"
+                break
+                ;;
+            *)
+                echo -e "\nInvalid input... \n"
+                ;;
+            esac
+        done
         ;;
     *)
         echo -e "$gbError Sorry, only ubuntu 14.04, 16.04, 18.04 and 20.04 are supported. \n"
@@ -107,53 +146,46 @@ ChangeDebSrc() {
     echo -e "$gbGood The source has been updated and all softwares have been graded. \n"
 }
 
-# Step 2: add ros source
+# add ros source
 AddRosSrc() {
-    sudo sh -c '. /etc/lsb-release && echo "deb http://mirrors.tuna.tsinghua.edu.cn/ros/ubuntu/ `lsb_release -cs` main" > /etc/apt/sources.list.d/ros-latest.list'
+    if [ $ros_version == "galactic" ]; then
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://mirrors.tuna.tsinghua.edu.cn/ros/ubuntu $(source /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list >/dev/null
+    else
+        sudo sh -c '. /etc/lsb-release && echo "deb http://mirrors.tuna.tsinghua.edu.cn/ros/ubuntu/ `lsb_release -cs` main" > /etc/apt/sources.list.d/ros-latest.list'
+    fi
     echo -e "$gbGood ROS source has been added. \n"
 }
 
-# Step 3: set up keys
+# set up keys
 SetKeys() {
-    sudo apt install curl -y
-    curl -sSL 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xC1CF6E31E6BADE8868B172B4F42ED6FBAB17C654' | sudo apt-key add -
+    sudo apt install curl gnupg lsb-release -y
+    if [ $ros_version == "galactic" ]; then
+        PrepareRosdistro
+        sudo cp $rosdistro/ros.key /usr/share/keyrings/ros-archive-keyring.gpg
+    else
+        curl -sSL 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xC1CF6E31E6BADE8868B172B4F42ED6FBAB17C654' | sudo apt-key add -
+    fi
     echo -e "$gbGood Keys have been set up. \n"
 }
 
-# Step 4: install ros
+# install ros
 InstallRos() {
     sudo apt update -y
-    sudo apt install ros-$ros_version-desktop-full -y
+    if [ $ros_version == "galactic" ]; then
+        sudo apt install ros-galactic-desktop -y
+    else
+        sudo apt install ros-$ros_version-desktop-full -y
+    fi
     echo -e "$gbGood The ros-$ros_version-desktop-full has been installed. \n"
 }
 
-# Step 5: set up environment
-SetEnv() {
-    found="false"
-
-    while read line; do
-        if [ "$line" == "source /opt/ros/$ros_version/setup.bash" ]; then
-            found="true"
-            break
-        fi
-    done <~/.bashrc
-
-    if [ $found == "false" ]; then
-        echo -e "\n# added by rostaller to set ros environment - $current_time" >>~/.bashrc
-        echo -e "source /opt/ros/$ros_version/setup.bash\n" >>~/.bashrc
-        source ~/.bashrc
-    fi
-
-    echo -e "$gbGood Environment has been set up. \n"
-}
-
-# Step 6: install dependencies for building packages
+# install dependencies for building packages
 InstallDepend() {
     sudo apt install $python_apt_version-rosdep $python_apt_version-rosinstall $python_apt_version-rosinstall-generator $python_apt_version-wstool build-essential -y
     echo -e "$gbGood Some dependencies for building packages have been installed. \n"
 }
 
-# Step 7: initialize rosdep
+# initialize rosdep
 RosdepInit() {
     set +e
     sudo rosdep init
@@ -162,31 +194,7 @@ RosdepInit() {
         echo -e "$gbGood [rosdep init] was executed online successfully. \n"
     else
         echo -e "$gbWarning Could not execute [rosdep init] online, I will do this using rosdistro repository. \n"
-
-        sudo rm -rf master.zip
-        sudo rm -rf rosdistro-master
-        sudo apt install wget unzip -y
-
-        echo -e "\n$gbInfo Trying to download the latest rosdistro repository from github... \n"
-        wget -T 10 https://github.com/ros/rosdistro/archive/refs/heads/master.zip
-
-        if [ $? -eq 0 ]; then
-            echo -e "$gbInfo Trying to unzip downloaded rosdistro repository... \n"
-            unzip master.zip 2>&1 >/dev/null
-
-            if [ $? -eq 0 ]; then
-                echo -e "$gbInfo Yaml files from the latest rosdistro repository will be used. \n"
-                rosdistro="rosdistro-master"
-            else
-                echo -e "$gbWarning Could not unzip downloaded rosdistro repository, so the local yaml files will be used. \n"
-                sudo rm -rf master.zip
-                sudo rm -rf rosdistro-master
-            fi
-        else
-            echo -e "$gbWarning Could not download the latest rosdistro repository, so the local yaml files will be used. \n"
-            sudo rm -rf master.zip
-        fi
-
+        PrepareRosdistro
         sudo mkdir -p /etc/ros/rosdep/sources.list.d
         cd $rosdistro
         sudo cp rosdep/sources.list.d/20-default.list /etc/ros/rosdep/sources.list.d/
@@ -195,7 +203,7 @@ RosdepInit() {
     set -e
 }
 
-# Step 8: update rosdep
+# update rosdep
 RosdepUpdate() {
     set +e
     rosdep update
@@ -233,7 +241,50 @@ RosdepUpdate() {
     fi
 }
 
-# Step 9: run demo
+# set locale
+SetLocale() {
+    set +e
+    locale
+
+    sudo apt update && sudo apt install locales
+    sudo locale-gen en_US en_US.UTF-8
+    sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+    export LANG=en_US.UTF-8
+
+    locale
+    set -e
+}
+
+# prepare rosdistro: download from github or using local version
+PrepareRosdistro() {
+    set +e
+    sudo rm -rf master.zip
+    sudo rm -rf rosdistro-master
+    sudo apt install wget unzip -y
+
+    echo -e "\n$gbInfo Trying to download the latest rosdistro repository from github... \n"
+    wget -T 10 https://github.com/ros/rosdistro/archive/refs/heads/master.zip
+
+    if [ $? -eq 0 ]; then
+        echo -e "$gbInfo Trying to unzip downloaded rosdistro repository... \n"
+        unzip master.zip 2>&1 >/dev/null
+
+        if [ $? -eq 0 ]; then
+            echo -e "$gbInfo Latest rosdistro repository will be used. \n"
+            rosdistro="rosdistro-master"
+        else
+            echo -e "$gbWarning Could not unzip downloaded rosdistro repository, so the local version will be used. \n"
+            sudo rm -rf master.zip
+            sudo rm -rf rosdistro-master
+        fi
+    else
+        echo -e "$gbWarning Could not download the latest rosdistro repository, so the local version will be used. \n"
+        sudo rm -rf master.zip
+    fi
+    set -e
+}
+
+# run demo
 RunDemo() {
     echo -e "$gbGood Good job, bro., all tasks have been done! Run demo now? (yes/no) [yes] \n"
 
@@ -245,15 +296,21 @@ RunDemo() {
         [yY][eE][sS] | [yY] | $null)
             echo -e "\nLet's enjoy ros! \n"
 
-            gnome-terminal -- bash -c "roscore" >/dev/null 2>&1 &&
-                sleep 5 &&
-                gnome-terminal -- bash -c "rviz" >/dev/null 2>&1 &&
-                sleep 2 &&
-                gnome-terminal -- bash -c "rosrun turtlesim turtlesim_node" >/dev/null 2>&1 &&
-                sleep 2 &&
-                gnome-terminal -- bash -c "rosrun turtlesim turtle_teleop_key" >/dev/null 2>&1 &&
-                sleep 2 &&
-                gnome-terminal -- bash -c "rqt_graph" >/dev/null 2>&1
+            if [ $ros_version == "galactic" ]; then
+                gnome-terminal -- bash -c "source /opt/ros/galactic/setup.bash; ros2 run demo_nodes_cpp talker" >/dev/null 2>&1 &&
+                    sleep 2 &&
+                    gnome-terminal -- bash -c "source /opt/ros/galactic/setup.bash; ros2 run demo_nodes_py listener" >/dev/null 2>&1
+            else
+                gnome-terminal -- bash -c "source /opt/ros/$ros_version/setup.bash; roscore" >/dev/null 2>&1 &&
+                    sleep 5 &&
+                    gnome-terminal -- bash -c "source /opt/ros/$ros_version/setup.bash; rviz" >/dev/null 2>&1 &&
+                    sleep 2 &&
+                    gnome-terminal -- bash -c "source /opt/ros/$ros_version/setup.bash; rosrun turtlesim turtlesim_node" >/dev/null 2>&1 &&
+                    sleep 2 &&
+                    gnome-terminal -- bash -c "source /opt/ros/$ros_version/setup.bash; rosrun turtlesim turtle_teleop_key" >/dev/null 2>&1 &&
+                    sleep 2 &&
+                    gnome-terminal -- bash -c "source /opt/ros/$ros_version/setup.bash; rqt_graph" >/dev/null 2>&1
+            fi
 
             break
             ;;
@@ -271,41 +328,35 @@ RunDemo() {
     done
 }
 
-# main function
-main() {
-    if [ -d "/opt/ros" ]; then
-        while true; do
-            echo -e "\n$gbWarning You have installed ros $(ls /opt/ros) in your machine. Are you sure to continue? (yes/no) [no] \n"
-
-            read input
-
-            case $input in
-
-            [yY][eE][sS] | [yY])
-                break
-                ;;
-
-            [nN][oO] | [nN] | $null)
-                echo -e "Bye! \n"
-                return
-                ;;
-
-            *)
-                echo -e "\nInvalid input... \n"
-                ;;
-
-            esac
-        done
-    fi
-
-    ChangeDebSrc
+# install ros 1
+InstallRos1() {
     AddRosSrc
     SetKeys
     InstallRos
-    SetEnv
     InstallDepend
     RosdepInit
     RosdepUpdate
+}
+
+# install ros 2
+InstallRos2() {
+    SetLocale
+    SetKeys
+    AddRosSrc
+    InstallRos
+}
+
+# main function
+main() {
+    CheckInstalledRos
+    ChangeDebSrc
+
+    if [ $ros_version == "galactic" ]; then
+        InstallRos2
+    else
+        InstallRos1
+    fi
+
     RunDemo
 }
 
