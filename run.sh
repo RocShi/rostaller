@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # @File          : run.sh
-# @Version       : v0.6.1
+# @Version       : v0.6.2
 # @Description   : This script is for installing ROS 1 including indigo, kinetic,
 #                  melodic and noetic on corresponding ubuntu distributions
 #                  automatically.
