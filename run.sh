@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # @File          : run.sh
-# @Version       : v0.7.1
+# @Version       : v0.7.2
 # @Description   : This script is for installing ROS 1 (indigo, kinetic,
 #                  melodic and noetic) and ROS 2 galactic on corresponding
 #                  ubuntu distributions automatically.
@@ -263,7 +263,7 @@ PrepareRosdistro() {
     sudo apt install wget unzip -y
 
     echo -e "\n$gbInfo Trying to download the latest rosdistro repository from github... \n"
-    wget -T 10 https://github.com/ros/rosdistro/archive/refs/heads/master.zip
+    wget -T 10 -t 3 https://github.com/ros/rosdistro/archive/refs/heads/master.zip
 
     if [ $? -eq 0 ]; then
         echo -e "$gbInfo Trying to unzip downloaded rosdistro repository... \n"
