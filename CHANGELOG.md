@@ -1,3 +1,7 @@
+## 20220412 - v0.7.3
+
+- **[new]：** 添加 ROS 2 Galactic 的构建依赖：`python3-colcon-common-extensions`。
+
 ## 20220403 - v0.7.2
 
 - **[update]：** 限制 wget 获取 rosdistro 的最大尝试次数，避免频繁尝试。
@@ -12,7 +16,7 @@
 
 ## 20220402 - v0.6.2
 
-- **[update]：** 更新本地预置的 `rosdistro` 版本：`adf8deb` → `b226ab5`；
+- **[update]：** 更新本地预置的 `rosdistro` 版本：`adf8deb` → `b226ab5`。
 
 ## 20211006 - v0.6.1
 
