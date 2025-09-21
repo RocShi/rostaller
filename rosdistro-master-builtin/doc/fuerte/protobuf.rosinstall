@@ -1,4 +1,0 @@
-- hg:
-    local-name: protobuf
-    uri: https://kforge.ros.org/gazebo/protobuf
-    version: default

@@ -1,0 +1,10 @@
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy main restricted
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-updates main restricted
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-updates universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy multiverse
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-updates multiverse
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-backports main restricted universe multiverse
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-security main restricted
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-security universe
+deb http://mirrors.tuna.tsinghua.edu.cn/ubuntu/ jammy-security multiverse

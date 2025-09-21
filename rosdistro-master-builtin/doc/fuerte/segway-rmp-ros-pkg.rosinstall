@@ -1,4 +1,0 @@
-- git:
-    local-name: segway-rmp-ros-pkg
-    uri: https://github.com/segwayrmp/segway-rmp-ros-pkg.git
-    version: master

@@ -1,4 +1,0 @@
-- git:
-    local-name: youbot_overhead_cameras
-    uri: https://github.com/WPI-RAIL/youbot_overhead_cameras.git
-    version: fuerte-devel

@@ -1,4 +1,0 @@
-- git:
-    local-name: stereo_slam
-    uri: https://github.com/srv/stereo_slam.git
-    version: fuerte

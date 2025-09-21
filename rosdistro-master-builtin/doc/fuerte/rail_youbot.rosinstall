@@ -1,4 +1,0 @@
-- git:
-    local-name: rail_youbot
-    uri: https://github.com/WPI-RAIL/rail_youbot.git
-    version: fuerte-devel

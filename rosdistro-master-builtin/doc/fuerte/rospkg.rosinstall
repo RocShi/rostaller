@@ -1,3 +1,0 @@
-- git:
-    local-name: rospkg
-    uri: https://github.com/ros-infrastructure/rospkg.git

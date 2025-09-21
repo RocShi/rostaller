@@ -1,4 +1,0 @@
-- git:
-    local-name: velodyne_utils
-    uri: https://github.com/jack-oquin/velodyne_utils.git
-    version: rosbuild

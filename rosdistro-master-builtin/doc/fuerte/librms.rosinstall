@@ -1,4 +1,0 @@
-- git:
-    local-name: librms
-    uri: git://github.com/WPI-RAIL/librms.git
-    version: fuerte-devel

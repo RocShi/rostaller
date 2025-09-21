@@ -1,4 +1,0 @@
-- hg:
-    local-name: starmac-ros-pkg
-    uri: https://bitbucket.org/bouffard/starmac-ros-pkg
-    version: default

@@ -1,4 +1,0 @@
-- git:
-    local-name: kingfisher
-    uri: https://github.com/clearpathrobotics/kingfisher.git
-    version: master

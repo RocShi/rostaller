@@ -1,4 +1,0 @@
-- hg:
-    local-name: assimp
-    uri: https://kforge.ros.org/robotmodel/assimp
-    version: default

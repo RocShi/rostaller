@@ -1,4 +1,0 @@
-- git:
-    local-name: romeo
-    uri: https://github.com/laas/romeo.git
-    version: master

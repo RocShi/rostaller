@@ -1,4 +1,0 @@
-- hg:
-    local-name: turtlebot_simulator
-    uri: https://kforge.ros.org/turtlebot/simulator
-    version: electric-devel

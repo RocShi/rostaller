@@ -1,4 +1,0 @@
-- hg:
-    local-name: geometry
-    uri: https://kforge.ros.org/geometry/geometry
-    version: fuerte_devel

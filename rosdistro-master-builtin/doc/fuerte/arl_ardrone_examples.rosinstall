@@ -1,4 +1,0 @@
-- git:
-    local-name: arl_ardrone_examples
-    uri: https://github.com/parcon/arl_ardrone_examples.git
-    version: fuerte

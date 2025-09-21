@@ -1,3 +1,9 @@
+## 20250922 - v0.8
+
+- **[new]：** 添加对 Ubuntu 22.04（Jammy）下 ROS 2 Humble 的支持；
+- **[refactor]：** 重构部分代码，使得添加 ROS 2 新版本支持更加便捷；
+- **[refactor]：** 使用 git submoudle 维护本地预置的 `rosdistro`，管理更加便捷。
+
 ## 20220412 - v0.7.3
 
 - **[new]：** 添加 ROS 2 Galactic 的构建依赖：`python3-colcon-common-extensions`。

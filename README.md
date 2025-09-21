@@ -4,16 +4,13 @@
 
 - 支持版本：
 
-  ROS 1
-
-  - Ubuntu 14.04（Trusty） + ROS 1 Indigo
-  - Ubuntu 16.04（Xenial） + ROS 1 Kinetic
-  - Ubuntu 18.04（Bionic） + ROS 1 Melodic
-  - Ubuntu 20.04（Focal） + ROS 1 Noetic
-
-  ROS 2
-
-  - Ubuntu 20.04（Focal） + ROS 2 Galactic
+| Ubuntu 版本 | 代号 | ROS 1 | ROS 2 |
+|------------|------|--------|--------|
+| 22.04 | Jammy | - | Humble |
+| 20.04 | Focal | Noetic | Galactic |
+| 18.04 | Bionic | Melodic | - |
+| 16.04 | Xenial | Kinetic | - |
+| 14.04 | Trusty | Indigo | - |
 
 - 执行过程同时输出至终端及 log 文件
 
@@ -26,7 +23,7 @@
 ## 2.1 克隆仓库
 
 ```bash
-git clone https://github.com/RocShi/rostaller.git
+git clone --recursive https://github.com/RocShi/rostaller.git
 ```
 
 ## 2.2 进入仓库目录

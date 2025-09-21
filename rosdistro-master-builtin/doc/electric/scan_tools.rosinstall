@@ -1,4 +1,0 @@
-- git:
-    local-name: scan_tools
-    uri: https://github.com/ccny-ros-pkg/scan_tools.git
-    version: master

@@ -1,4 +1,0 @@
-- hg:
-    local-name: turtlebot_arm
-    uri: https://kforge.ros.org/turtlebot/turtlebot_arm
-    version: default

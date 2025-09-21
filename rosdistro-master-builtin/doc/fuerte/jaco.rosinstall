@@ -1,4 +1,0 @@
-- git:
-    local-name: jaco
-    uri: https://github.com/Kinovarobotics/jaco-ros.git
-    version: master

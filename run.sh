@@ -1,17 +1,17 @@
 #!/bin/bash
 #
 # @File          : run.sh
-# @Version       : v0.7.3
+# @Version       : v0.8
 # @Description   : This script is for installing ROS 1 (indigo, kinetic,
-#                  melodic and noetic) and ROS 2 galactic on corresponding
-#                  ubuntu distributions automatically.
+#                  melodic and noetic) and ROS 2 (galactic and humble) on 
+#                  corresponding ubuntu distributions automatically.
 #                  Please ensure you have configured the network as well as the
 #                  proxy correctly before executing this script.
 # @Author        : ShiPeng
 # @Email         : RocShi@outlook.com
 # @License       : MIT License
 #
-#    Copyright (c) 2021-2022 ShiPeng
+#    Copyright (c) 2021-2025 ShiPeng
 #
 #    Permission is hereby granted, free of charge, to any person obtaining a copy
 #    of this software and associated documentation files (the "Software"), to deal
@@ -54,6 +54,21 @@ gbGood="\033[1;32m[GOOD]\033[0m"
 
 rosdistro="rosdistro-master-builtin"
 
+# ROS2 versions array - add new ROS2 versions here
+# to add support for a new ROS2 version, simply add it to this array
+# example: ros2_versions=("galactic" "humble" "iron" "jazz")
+ros2_versions=("galactic" "humble")
+
+# Ubuntu version to ROS version mapping
+# to add support for a new Ubuntu version, add it to this mapping
+# example: ubuntu_ros_mapping["2404"]="iron"
+declare -A ubuntu_ros_mapping
+ubuntu_ros_mapping["1404"]="indigo"
+ubuntu_ros_mapping["1604"]="kinetic"
+ubuntu_ros_mapping["1804"]="melodic"
+ubuntu_ros_mapping["2004"]="noetic"  # default for 20.04, user can choose ROS2
+ubuntu_ros_mapping["2204"]="humble"
+
 ros_version=""
 
 python_apt_version="python"
@@ -61,6 +76,17 @@ python_lib_version="python2.7"
 
 current_time=$(date "+%Y-%m-%d %H:%M:%S")
 sudo echo -e "\n <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< $current_time >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> \n"
+
+# check if a version is ROS2
+IsRos2() {
+    local version=$1
+    for ros2_ver in "${ros2_versions[@]}"; do
+        if [ "$version" == "$ros2_ver" ]; then
+            return 0
+        fi
+    done
+    return 1
+}
 
 # check if ros has been installed
 CheckInstalledRos() {
@@ -96,17 +122,16 @@ ChangeDebSrc() {
 
     ubuntu_version=$(cat /etc/os-release | grep "VERSION_ID" | sed 's/\(VERSION_ID=\|"\|\.\)//g')
 
-    case $ubuntu_version in
-    1404)
-        ros_version="indigo"
-        ;;
-    1604)
-        ros_version="kinetic"
-        ;;
-    1804)
-        ros_version="melodic"
-        ;;
-    2004)
+    # Check if Ubuntu version is supported
+    if [[ -z "${ubuntu_ros_mapping[$ubuntu_version]}" ]]; then
+        echo -e "$gbError Sorry, only ubuntu 14.04, 16.04, 18.04, 20.04 and 22.04 are supported. \n"
+        echo
+        sudo rm -f "$file_fifo"
+        exit 1
+    fi
+
+    # Special case for Ubuntu 20.04 - user can choose between ROS1 and ROS2
+    if [ $ubuntu_version == "2004" ]; then
         while true; do
             echo -e "\n$gbInfo Both ros 1 and ros 2 are supported by rostaller on ubuntu 20.04, which one do you want? (1/2) \n"
             read input
@@ -126,14 +151,10 @@ ChangeDebSrc() {
                 ;;
             esac
         done
-        ;;
-    *)
-        echo -e "$gbError Sorry, only ubuntu 14.04, 16.04, 18.04 and 20.04 are supported. \n"
-        echo
-        sudo rm -f "$file_fifo"
-        exit 1
-        ;;
-    esac
+    else
+        # Use mapping for other versions
+        ros_version="${ubuntu_ros_mapping[$ubuntu_version]}"
+    fi
 
     echo -e "\n$gbInfo The ros-$ros_version will be installed next. \n"
 
@@ -148,7 +169,7 @@ ChangeDebSrc() {
 
 # add ros source
 AddRosSrc() {
-    if [ $ros_version == "galactic" ]; then
+    if IsRos2 $ros_version; then
         echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://mirrors.tuna.tsinghua.edu.cn/ros2/ubuntu $(source /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list >/dev/null
     else
         sudo sh -c '. /etc/lsb-release && echo "deb http://mirrors.tuna.tsinghua.edu.cn/ros/ubuntu/ `lsb_release -cs` main" > /etc/apt/sources.list.d/ros-latest.list'
@@ -159,7 +180,7 @@ AddRosSrc() {
 # set up keys
 SetKeys() {
     sudo apt install curl gnupg lsb-release -y
-    if [ $ros_version == "galactic" ]; then
+    if IsRos2 $ros_version; then
         PrepareRosdistro
         sudo cp $rosdistro/ros.key /usr/share/keyrings/ros-archive-keyring.gpg
     else
@@ -171,17 +192,17 @@ SetKeys() {
 # install ros
 InstallRos() {
     sudo apt update -y
-    if [ $ros_version == "galactic" ]; then
-        sudo apt install ros-galactic-desktop -y
+    if IsRos2 $ros_version; then
+        sudo apt install ros-$ros_version-desktop -y
     else
         sudo apt install ros-$ros_version-desktop-full -y
     fi
-    echo -e "$gbGood The ros-$ros_version-desktop-full has been installed. \n"
+    echo -e "$gbGood The ros-$ros_version-desktop has been installed. \n"
 }
 
 # install dependencies for building packages
 InstallDepend() {
-    if [ $ros_version == "galactic" ]; then
+    if IsRos2 $ros_version; then
         sudo apt install python3-colcon-common-extensions -y
     else
         sudo apt install $python_apt_version-rosdep $python_apt_version-rosinstall $python_apt_version-rosinstall-generator $python_apt_version-wstool build-essential -y
@@ -300,10 +321,10 @@ RunDemo() {
         [yY][eE][sS] | [yY] | $null)
             echo -e "\nLet's enjoy ros! \n"
 
-            if [ $ros_version == "galactic" ]; then
-                gnome-terminal -- bash -c "source /opt/ros/galactic/setup.bash; ros2 run demo_nodes_cpp talker" >/dev/null 2>&1 &&
+            if IsRos2 $ros_version; then
+                gnome-terminal -- bash -c "source /opt/ros/$ros_version/setup.bash; ros2 run demo_nodes_cpp talker" >/dev/null 2>&1 &&
                     sleep 2 &&
-                    gnome-terminal -- bash -c "source /opt/ros/galactic/setup.bash; ros2 run demo_nodes_py listener" >/dev/null 2>&1
+                    gnome-terminal -- bash -c "source /opt/ros/$ros_version/setup.bash; ros2 run demo_nodes_py listener" >/dev/null 2>&1
             else
                 gnome-terminal -- bash -c "source /opt/ros/$ros_version/setup.bash; roscore" >/dev/null 2>&1 &&
                     sleep 5 &&
@@ -351,17 +372,24 @@ InstallRos2() {
     InstallDepend
 }
 
+# clean rosdistro
+CleanRosdistro() {
+    sudo rm -rf master.zip
+    sudo rm -rf rosdistro-master
+}
+
 # main function
 main() {
     CheckInstalledRos
     ChangeDebSrc
 
-    if [ $ros_version == "galactic" ]; then
+    if IsRos2 $ros_version; then
         InstallRos2
     else
         InstallRos1
     fi
 
+    CleanRosdistro
     RunDemo
 }
 

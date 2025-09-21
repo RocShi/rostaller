@@ -1,4 +1,0 @@
-- git:
-    local-name: gps_umd
-    uri: https://github.com/ktossell/gps_umd.git
-    version: master

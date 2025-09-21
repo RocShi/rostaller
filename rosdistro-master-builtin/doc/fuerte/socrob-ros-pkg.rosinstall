@@ -1,4 +1,0 @@
-- git:
-    local-name: socrob-ros-pkg
-    uri: https://github.com/larsys/socrob-ros-pkg.git
-    version: master

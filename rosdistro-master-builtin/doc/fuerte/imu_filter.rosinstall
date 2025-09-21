@@ -1,3 +1,0 @@
-- hg:
-    local-name: imu_filter
-    uri: https://kforge.ros.org/megaslam/imu_filter

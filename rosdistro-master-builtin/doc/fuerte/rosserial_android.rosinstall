@@ -1,4 +1,0 @@
-- hg:
-    local-name: rosserial_android
-    uri: https://kforge.ros.org/rosserial/android
-    version: default

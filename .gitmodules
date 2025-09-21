@@ -1,0 +1,3 @@
+[submodule "rosdistro-master-builtin"]
+	path = rosdistro-master-builtin
+	url = https://github.com/ros/rosdistro.git
