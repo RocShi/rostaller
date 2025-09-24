@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # @File          : run.sh
-# @Version       : v0.8
+# @Version       : v0.8.1
 # @Description   : This script is for installing ROS 1 (indigo, kinetic,
 #                  melodic and noetic) and ROS 2 (galactic and humble) on 
 #                  corresponding ubuntu distributions automatically.
@@ -52,7 +52,7 @@ gbWarning="\033[1;33m[WARNING]\033[0m"
 gbInfo="\033[1;32m[INFO]\033[0m"
 gbGood="\033[1;32m[GOOD]\033[0m"
 
-rosdistro="rosdistro-master-builtin"
+rosdistro="rosdistro"
 
 # ROS2 versions array - add new ROS2 versions here
 # to add support for a new ROS2 version, simply add it to this array
@@ -181,7 +181,6 @@ AddRosSrc() {
 SetKeys() {
     sudo apt install curl gnupg lsb-release -y
     if IsRos2 $ros_version; then
-        PrepareRosdistro
         sudo cp $rosdistro/ros.key /usr/share/keyrings/ros-archive-keyring.gpg
     else
         curl -sSL 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xC1CF6E31E6BADE8868B172B4F42ED6FBAB17C654' | sudo apt-key add -
@@ -219,7 +218,6 @@ RosdepInit() {
         echo -e "$gbGood [rosdep init] was executed online successfully. \n"
     else
         echo -e "$gbWarning Could not execute [rosdep init] online, I will do this using rosdistro repository. \n"
-        PrepareRosdistro
         sudo mkdir -p /etc/ros/rosdep/sources.list.d
         cd $rosdistro
         sudo cp rosdep/sources.list.d/20-default.list /etc/ros/rosdep/sources.list.d/
@@ -255,8 +253,6 @@ RosdepUpdate() {
 
         rosdep update
 
-        sudo rm -rf master.zip
-        sudo rm -rf rosdistro-master
         sudo mv /etc/ros/rosdep/sources.list.d/20-default.list.bkp.rostaller /etc/ros/rosdep/sources.list.d/20-default.list
         sudo mv /usr/lib/$python_lib_version/dist-packages/rosdep2/gbpdistro_support.py.bkp.rostaller /usr/lib/$python_lib_version/dist-packages/rosdep2/gbpdistro_support.py
         sudo mv /usr/lib/$python_lib_version/dist-packages/rosdep2/rep3.py.bkp.rostaller /usr/lib/$python_lib_version/dist-packages/rosdep2/rep3.py
@@ -277,35 +273,6 @@ SetLocale() {
     export LANG=en_US.UTF-8
 
     locale
-    set -e
-}
-
-# prepare rosdistro: download from github or using local version
-PrepareRosdistro() {
-    set +e
-    sudo rm -rf master.zip
-    sudo rm -rf rosdistro-master
-    sudo apt install wget unzip -y
-
-    echo -e "\n$gbInfo Trying to download the latest rosdistro repository from github... \n"
-    wget -T 10 -t 3 https://github.com/ros/rosdistro/archive/refs/heads/master.zip
-
-    if [ $? -eq 0 ]; then
-        echo -e "$gbInfo Trying to unzip downloaded rosdistro repository... \n"
-        unzip master.zip 2>&1 >/dev/null
-
-        if [ $? -eq 0 ]; then
-            echo -e "$gbInfo Latest rosdistro repository will be used. \n"
-            rosdistro="rosdistro-master"
-        else
-            echo -e "$gbWarning Could not unzip downloaded rosdistro repository, so the local version will be used. \n"
-            sudo rm -rf master.zip
-            sudo rm -rf rosdistro-master
-        fi
-    else
-        echo -e "$gbWarning Could not download the latest rosdistro repository, so the local version will be used. \n"
-        sudo rm -rf master.zip
-    fi
     set -e
 }
 
@@ -372,12 +339,6 @@ InstallRos2() {
     InstallDepend
 }
 
-# clean rosdistro
-CleanRosdistro() {
-    sudo rm -rf master.zip
-    sudo rm -rf rosdistro-master
-}
-
 # main function
 main() {
     CheckInstalledRos
@@ -389,7 +350,6 @@ main() {
         InstallRos1
     fi
 
-    CleanRosdistro
     RunDemo
 }
 

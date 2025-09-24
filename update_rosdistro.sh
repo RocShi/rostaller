@@ -18,19 +18,19 @@ if [ ! -d ".git" ]; then
 fi
 
 # check if submodule exists
-if [ ! -f ".gitmodules" ] || ! grep -q "rosdistro-master-builtin" .gitmodules; then
+if [ ! -f ".gitmodules" ] || ! grep -q "rosdistro" .gitmodules; then
     echo "Error: rosdistro submodule not found. Please add it first:"
-    echo "git submodule add --depth 1 https://github.com/ros/rosdistro.git rosdistro-master-builtin"
+    echo "git submodule add --depth 1 https://github.com/ros/rosdistro.git rosdistro"
     exit 1
 fi
 
 # update submodule to latest
 echo "Fetching latest changes from rosdistro repository..."
-git submodule update --remote rosdistro-master-builtin
+git submodule update --remote rosdistro
 
 # show what changed
 echo "Updated rosdistro submodule:"
-cd rosdistro-master-builtin
+cd rosdistro
 echo "Current commit: $(git rev-parse HEAD)"
 echo "Latest changes:"
 git log --oneline -5
@@ -38,7 +38,7 @@ cd ..
 
 # add changes to git
 echo "Adding submodule changes to git..."
-git add rosdistro-master-builtin
+git add rosdistro
 
 echo "rosdistro submodule updated successfully!"
 echo "To commit the changes, run: git commit -m 'Update rosdistro submodule'"
