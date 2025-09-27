@@ -1,0 +1,4 @@
+- git:
+    uri: https://github.com/ohm-ros-pkg/optris_drivers.git
+    local-name: optris_drivers
+    version: fuerte-devel

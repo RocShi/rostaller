@@ -22,10 +22,10 @@
 
 # 3 用法
 
-## 3.1 克隆仓库
+## 3.1 克隆仓库（最新提交）
 
 ```bash
-git clone --recursive https://github.com/RocShi/rostaller.git
+git clone --depth 1 https://github.com/RocShi/rostaller.git
 ```
 
 ## 3.2 进入仓库目录，并为脚本添加可执行权限

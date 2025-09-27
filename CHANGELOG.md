@@ -1,8 +1,12 @@
+## 20250927 - v0.8.2
+
+- **[fix]：** 旧版 Ubuntu 及 git 对 submoudle 支持较差，恢复通过本地文件的方式维护预置 `rosdistro`。
+
 ## 20250925 - v0.8.1
 
-- **[update]：** 重命名 rosdistro submodule，与官方仓库保持一致
-- **[update]：** 为 rosdistro submodule 增加 `shallow = true` 参数，提升仓库克隆速度
-- **[update]：** 移除 `run.sh` 中冗余的 `PrepareRosdistro` 操作，提升 ROS 安装速度
+- **[update]：** 重命名 rosdistro submodule，与官方仓库保持一致；
+- **[update]：** 为 rosdistro submodule 增加 `shallow = true` 参数，提升仓库克隆速度；
+- **[update]：** 移除 `run.sh` 中冗余的 `PrepareRosdistro` 操作，提升 ROS 安装速度。
 
 ## 20250922 - v0.8
 
