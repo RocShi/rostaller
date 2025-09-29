@@ -1,10 +1,9 @@
 #!/bin/bash
 #
 # @File          : run.sh
-# @Version       : v0.8.3
-# @Description   : This script is for installing ROS 1 (indigo, kinetic,
-#                  melodic and noetic) and ROS 2 (galactic and humble) on 
-#                  corresponding ubuntu distributions automatically.
+# @Version       : v0.9
+# @Description   : This script is for installing ROS 1 and ROS 2 on corresponding 
+#                  ubuntu distributions automatically.
 #                  Please ensure you have configured the network as well as the
 #                  proxy correctly before executing this script.
 # @Author        : ShiPeng
@@ -56,8 +55,8 @@ rosdistro="rosdistro-master-builtin"
 
 # ROS2 versions array - add new ROS2 versions here
 # to add support for a new ROS2 version, simply add it to this array
-# example: ros2_versions=("galactic" "humble" "iron" "jazz")
-ros2_versions=("galactic" "humble")
+# example: ros2_versions=("galactic" "humble" "iron" "jazzy")
+ros2_versions=("galactic" "humble" "jazzy")
 
 # Ubuntu version to ROS version mapping
 # to add support for a new Ubuntu version, add it to this mapping
@@ -68,6 +67,7 @@ ubuntu_ros_mapping["1604"]="kinetic"
 ubuntu_ros_mapping["1804"]="melodic"
 ubuntu_ros_mapping["2004"]="noetic"  # default for 20.04, user can choose ROS2
 ubuntu_ros_mapping["2204"]="humble"
+ubuntu_ros_mapping["2404"]="jazzy"
 
 ros_version=""
 
@@ -124,7 +124,7 @@ ChangeDebSrc() {
 
     # Check if Ubuntu version is supported
     if [[ -z "${ubuntu_ros_mapping[$ubuntu_version]}" ]]; then
-        echo -e "$gbError Sorry, only ubuntu 14.04, 16.04, 18.04, 20.04 and 22.04 are supported. \n"
+        echo -e "$gbError Sorry, only ubuntu 14.04, 16.04, 18.04, 20.04, 22.04 and 24.04 are supported. \n"
         echo
         sudo rm -f "$file_fifo"
         exit 1
@@ -158,10 +158,21 @@ ChangeDebSrc() {
 
     echo -e "\n$gbInfo The ros-$ros_version will be installed next. \n"
 
-    if [ ! -f "/etc/apt/sources.list.bkp.rostaller" ]; then
-        sudo cp /etc/apt/sources.list /etc/apt/sources.list.bkp.rostaller
+    # Handle different source formats for different Ubuntu versions
+    if [ $ubuntu_version == "2404" ]; then
+        # Ubuntu 24.04 uses deb822 format (.sources files)
+        if [ ! -f "/etc/apt/sources.list.d/ubuntu.sources.bkp.rostaller" ]; then
+            sudo cp /etc/apt/sources.list.d/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources.bkp.rostaller 2>/dev/null || true
+        fi
+        sudo cp SimpleSources/$ubuntu_version/ubuntu.sources /etc/apt/sources.list.d/ubuntu.sources
+    else
+        # Older Ubuntu versions use traditional sources.list format
+        if [ ! -f "/etc/apt/sources.list.bkp.rostaller" ]; then
+            sudo cp /etc/apt/sources.list /etc/apt/sources.list.bkp.rostaller
+        fi
+        sudo cp SimpleSources/$ubuntu_version/sources.list /etc/apt/
     fi
-    sudo cp SimpleSources/$ubuntu_version/sources.list /etc/apt/
+    
     sudo apt-get update -y
     sudo apt-get upgrade -y
     echo -e "$gbGood The source has been updated and all softwares have been graded. \n"

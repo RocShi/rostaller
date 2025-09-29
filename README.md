@@ -4,6 +4,7 @@
 
 | Ubuntu 版本 | 代号 | ROS 1 | ROS 2 |
 |------------|------|--------|--------|
+| 24.04 | Noble | - | Jazzy |
 | 22.04 | Jammy | - | Humble |
 | 20.04 | Focal | Noetic | Galactic |
 | 18.04 | Bionic | Melodic | - |

@@ -1,0 +1,14 @@
+Types: deb
+URIs: http://mirrors.tuna.tsinghua.edu.cn/ubuntu/
+Suites: noble noble-updates
+Components: main restricted universe multiverse
+
+Types: deb
+URIs: http://mirrors.tuna.tsinghua.edu.cn/ubuntu/
+Suites: noble-backports
+Components: main restricted universe multiverse
+
+Types: deb
+URIs: http://mirrors.tuna.tsinghua.edu.cn/ubuntu/
+Suites: noble-security
+Components: main restricted universe multiverse

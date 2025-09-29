@@ -1,3 +1,8 @@
+## 20250930 - v0.9
+
+- **[new]：** 添加对 Ubuntu 24.04（Noble）下 ROS 2 Jazzy 的支持；
+- **[new]：** 适配 Ubuntu 24.04 的新换源方式（deb822 格式）。
+
 ## 20250930 - v0.8.3
 
 - **[new]：** 对于非 Galactic 的 ROS 2 版本，增加 `ros-dev-tools` 开发工具包的自动安装。
