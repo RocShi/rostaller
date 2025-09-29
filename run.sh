@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # @File          : run.sh
-# @Version       : v0.8.2
+# @Version       : v0.8.3
 # @Description   : This script is for installing ROS 1 (indigo, kinetic,
 #                  melodic and noetic) and ROS 2 (galactic and humble) on 
 #                  corresponding ubuntu distributions automatically.
@@ -204,6 +204,9 @@ InstallRos() {
 InstallDepend() {
     if IsRos2 $ros_version; then
         sudo apt install python3-colcon-common-extensions -y
+        if [ $ros_version != "galactic" ]; then
+            sudo apt install ros-dev-tools -y
+        fi
     else
         sudo apt install $python_apt_version-rosdep $python_apt_version-rosinstall $python_apt_version-rosinstall-generator $python_apt_version-wstool build-essential -y
     fi

@@ -1,6 +1,11 @@
+## 20250930 - v0.8.3
+
+- **[new]：** 对于非 Galactic 的 ROS 2 版本，增加 `ros-dev-tools` 开发工具包的自动安装。
+
 ## 20250927 - v0.8.2
 
-- **[fix]：** 旧版 Ubuntu 及 git 对 submoudle 支持较差，恢复通过本地文件的方式维护预置 `rosdistro`。
+- **[fix]：** 旧版 Ubuntu 及 git 对 submoudle 支持较差，恢复通过本地文件的方式维护预置 `rosdistro`；
+- **[update]：** 更新 Ubuntu 18.04 和 Ubuntu 20.04 sources.list。
 
 ## 20250925 - v0.8.1
 
